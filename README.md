@@ -48,9 +48,9 @@ our new error handling functions.
 
 * Recap the Monad instance for Either, just for reference.
 * Start with `newtype IOEither e a = IOEither (IO (Either e a))`
-* * write Monad instance.
-* * Diff against instance for Either.
-* * If needed, show an example step-by-step evaluation.
+  * write Monad instance.
+  * Diff against instance for Either.
+  * If needed, show an example step-by-step evaluation.
 * Parametrise references to `IO` to turn it into a monad transformer.
 
 ### What does EitherT look like in practice?
@@ -89,9 +89,9 @@ our new error handling functions.
 ### Comparison with other approaches
 
 * Free
-* * This generally results in you placing the exception handling code in
+  * This generally results in you placing the exception handling code in
    your natural transformations.
-* * Doesn't necessarily replace EitherT - you can have your primitives returning
+  * Doesn't necessarily replace EitherT - you can have your primitives returning
    Eithers so that you have the option of error handling, then use `EitherT
    Free`.
 
