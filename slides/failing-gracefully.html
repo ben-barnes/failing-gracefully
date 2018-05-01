@@ -1,0 +1,39 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="reveal.js/css/reveal.css">
+    <link rel="stylesheet" href="reveal.js/css/theme/night.css">
+    <link rel="stylesheet" href="reveal.js/lib/css/zenburn.css">
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/headjs/1.0.3/head.min.js"></script>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <h3>Failing gracefully with EitherT</h3>
+          <h4>Ben Barnes</h4>
+          <h4>Data61 | CSIRO</h4>
+        </section>
+        <section>
+          <pre>
+            <code class="haskell" data-trim data-noescape>
+              data Either a b
+                = Left a 
+                | Right b
+              </code>
+            </pre>
+        </section>
+      </div>
+    </div>
+    <script src="reveal.js/js/reveal.js"></script>
+    <script src="reveal.js/plugin/markdown/marked.js"></script>
+    <script src="reveal.js/plugin/markdown/markdown.js"></script>
+    <script>
+      Reveal.initialize({
+        dependencies: [
+          { src: 'reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+        ]
+      });
+    </script>
+  </body>
+</html>
