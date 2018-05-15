@@ -1,0 +1,17 @@
+name:                failing-gracefully
+version:             0.1.0.0
+license:             BSD3
+license-file:        LICENSE
+author:              Ben Barnes
+maintainer:          ben.barnes@data61.csiro.au
+build-type:          Simple
+extra-source-files:  ChangeLog.md
+cabal-version:       >=1.10
+
+executable failing-gracefully
+  main-is:             Main.hs
+  build-depends:       base                >= 4.9 && < 4.10
+                     , exceptions          >= 0.8 && < 0.9
+                     , text                >= 1.2 && < 1.3
+                     , transformers-either >= 0.1 && < 0.2
+  default-language:    Haskell2010
