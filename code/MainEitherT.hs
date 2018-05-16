@@ -9,6 +9,8 @@ import Control.Applicative ((<*), (<*>), Applicative, pure)
 import Control.Exception (IOException, catch, throwIO)
 import Control.Monad ((>>=), Monad, ap, liftM, return)
 import Control.Monad.Catch (Handler(Handler))
+import Control.Monad.Trans.Either (EitherT, firstEitherT, hoistEither, newEitherT)
+import Control.Monad.Trans.Either.Exit (orDie)
 import Data.Bifunctor (first)
 import Data.Bool (otherwise)
 import Data.Either (Either(Left, Right))
@@ -46,21 +48,11 @@ import qualified Data.Text.IO as T
 import qualified Data.Text.Read as T
 
 main :: IO ()
-main = do
-  contentsEither <- readFile "foo.txt"
-  case first AppFileError contentsEither of
-    Left e -> T.hPutStrLn stderr $ renderAppError e
-    Right cs -> do
-      let normalised = do
-            nums <- first AppLineError $ parseLines cs
-            first AppNormaliseError $ normalise nums
-      case normalised of
-        Left e  -> T.hPutStrLn stderr $ renderAppError e
-        Right ns -> do
-          status <- writeFile "bar.txt" $ renderDoubles ns
-          case first AppFileError status of
-            Left e -> T.hPutStrLn stderr $ renderAppError e
-            Right u -> return u
+main = orDie renderAppError $ do
+  contents <- firstEitherT AppFileError $ readFile "foo.txt"
+  nums <- hoistEither $ first AppLineError $ parseLines contents
+  normalised <- hoistEither $ first AppNormaliseError $ normalise nums
+  firstEitherT AppFileError $ writeFile "bar.txt" $ renderDoubles normalised
 
 renderDoubles :: [Double] -> Text
 renderDoubles ns = T.unlines (T.pack . show <$> ns)
@@ -97,7 +89,7 @@ renderNormaliseError EmptyList = "Cannot normalise an empty list."
 renderNormaliseError SingletonList = "Cannot normalise a list with one value."
 renderNormaliseError ZeroRange = "Cannot normalise when all values are the same."
 
-readFile:: FilePath -> IO (Either FileError Text)
+readFile:: FilePath -> EitherT FileError IO Text
 readFile filePath =
   let getFileContents = do
         contents <- withFile filePath ReadMode T.hGetContents
@@ -107,9 +99,9 @@ readFile filePath =
         error <- selectFileError e
         return $ Left (ReadFileError filePath error)
 
-  in  catch getFileContents handleError
+  in  newEitherT $ catch getFileContents handleError
 
-writeFile :: FilePath -> Text -> IO (Either FileError ())
+writeFile :: FilePath -> Text -> EitherT FileError IO ()
 writeFile filePath contents =
   let setFileContents = do
         withFile filePath WriteMode (\h -> T.hPutStr h contents)
@@ -119,7 +111,7 @@ writeFile filePath contents =
         error <- selectFileError e
         return $ Left (WriteFileError filePath error)
 
-  in  catch setFileContents handleError
+  in  newEitherT $ catch setFileContents handleError
 
 data FileErrorType
   = AlreadyInUse
@@ -183,18 +175,9 @@ renderLineError :: LineError -> Text
 renderLineError (InvalidLine n e) =
   "Error on line " <> renderLineNumber n <> ": " <> renderParseError e
 
--- Examples
-
 doIOEither :: IO (Either e a) -> (a -> IO (Either e b)) -> IO (Either e b)
 doIOEither ioEitherA f = do
   eitherA <- ioEitherA
-  case eitherA of
-    Left e -> return (Left e)
-    Right a -> f a
-
-doEitherM :: (Monad m) => m (Either e a) -> (a -> m (Either e b)) -> m (Either e b)
-doEitherM mEitherA f = do
-  eitherA <- mEitherA
   case eitherA of
     Left e -> return (Left e)
     Right a -> f a
