@@ -161,9 +161,7 @@ parseLines t =
       parseLine (n, line) = first (InvalidLine n) (parseDouble line)
   in  traverse parseLine (lineNumbers `zip` lines)
 
-newtype LineNumber = LineNumber {
-  getLineNumber :: Int
-}
+newtype LineNumber = LineNumber Int
 
 renderLineNumber :: LineNumber -> Text
 renderLineNumber (LineNumber n) = T.pack . show $ n
@@ -174,10 +172,3 @@ data LineError
 renderLineError :: LineError -> Text
 renderLineError (InvalidLine n e) =
   "Error on line " <> renderLineNumber n <> ": " <> renderParseError e
-
-doIOEither :: IO (Either e a) -> (a -> IO (Either e b)) -> IO (Either e b)
-doIOEither ioEitherA f = do
-  eitherA <- ioEitherA
-  case eitherA of
-    Left e -> return (Left e)
-    Right a -> f a

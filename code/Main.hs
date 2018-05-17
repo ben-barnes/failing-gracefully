@@ -47,7 +47,7 @@ import qualified Data.Text.Read as T
 
 main :: IO ()
 main = do
-  contentsEither <- readFile "foo.txt"
+  contentsEither <- readFile "input"
   case first AppFileError contentsEither of
     Left e -> T.hPutStrLn stderr $ renderAppError e
     Right cs -> do
@@ -57,7 +57,7 @@ main = do
       case normalised of
         Left e  -> T.hPutStrLn stderr $ renderAppError e
         Right ns -> do
-          status <- writeFile "bar.txt" $ renderDoubles ns
+          status <- writeFile "output" $ renderDoubles ns
           case first AppFileError status of
             Left e -> T.hPutStrLn stderr $ renderAppError e
             Right u -> return u
@@ -150,9 +150,9 @@ selectFileError e | isAlreadyInUseError e = return AlreadyInUse
 parseDouble :: Text -> Either ParseError Double
 parseDouble t =
   case T.rational t of
-    Left _ -> Left $ InvalidNumber t
-    Right (a, t) | T.null t  -> Right a
-                 | otherwise -> Left $ InputRemaining t
+    Right (a, "") -> Right a
+    Right (a, t') -> Left $ InputRemaining t'
+    Left _        -> Left $ InvalidNumber t
 
 data ParseError
   = InputRemaining Text
@@ -169,9 +169,7 @@ parseLines t =
       parseLine (n, line) = first (InvalidLine n) (parseDouble line)
   in  traverse parseLine (lineNumbers `zip` lines)
 
-newtype LineNumber = LineNumber {
-  getLineNumber :: Int
-}
+newtype LineNumber = LineNumber Int
 
 renderLineNumber :: LineNumber -> Text
 renderLineNumber (LineNumber n) = T.pack . show $ n
