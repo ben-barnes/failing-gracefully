@@ -5,35 +5,27 @@ module Main (
   main
 ) where
 
-import Control.Applicative ((<*), (<*>), Applicative, pure)
 import Control.Exception (IOException, catch, throwIO)
-import Control.Monad ((>>=), Monad, ap, liftM, return)
-import Control.Monad.Catch (Handler(Handler))
+import Control.Monad (return)
 import Control.Monad.Trans.Either (EitherT, firstEitherT, hoistEither, newEitherT)
 import Control.Monad.Trans.Either.Exit (orDie)
 import Data.Bifunctor (first)
 import Data.Bool (otherwise)
 import Data.Either (Either(Left, Right))
 import Data.Eq ((==))
-import Data.Foldable (traverse_)
 import Data.Function (($), (.))
-import Data.Functor ((<$>), Functor, fmap)
+import Data.Functor ((<$>))
 import Data.Int (Int)
 import Data.List (maximum, minimum, zip)
 import Data.Semigroup ((<>))
-import Data.String (String)
 import Data.Text (Text)
 import Data.Traversable (traverse)
-import Data.Tuple (fst)
 import GHC.Float (Double)
 import Prelude ((-), (/))
 import System.IO (
     FilePath
   , IO
   , IOMode(ReadMode, WriteMode)
-  , print
-  , putStrLn
-  , stderr
   , withFile
   )
 import System.IO.Error (
@@ -49,10 +41,10 @@ import qualified Data.Text.Read as T
 
 main :: IO ()
 main = orDie renderAppError $ do
-  contents <- firstEitherT AppFileError $ readFile "foo.txt"
+  contents <- firstEitherT AppFileError $ readFile "input"
   nums <- hoistEither $ first AppLineError $ parseLines contents
   normalised <- hoistEither $ first AppNormaliseError $ normalise nums
-  firstEitherT AppFileError $ writeFile "bar.txt" $ renderDoubles normalised
+  firstEitherT AppFileError $ writeFile "output" $ renderDoubles normalised
 
 renderDoubles :: [Double] -> Text
 renderDoubles ns = T.unlines (T.pack . show <$> ns)
@@ -142,9 +134,9 @@ selectFileError e | isAlreadyInUseError e = return AlreadyInUse
 parseDouble :: Text -> Either ParseError Double
 parseDouble t =
   case T.rational t of
-    Left _ -> Left $ InvalidNumber t
-    Right (a, t) | T.null t  -> Right a
-                 | otherwise -> Left $ InputRemaining t
+    Right (a, "") -> Right a
+    Right (_, t') -> Left $ InputRemaining t'
+    Left _        -> Left $ InvalidNumber t
 
 data ParseError
   = InputRemaining Text

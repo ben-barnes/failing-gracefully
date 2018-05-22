@@ -5,32 +5,25 @@ module Main (
   main
 ) where
 
-import Control.Applicative ((<*), (<*>), Applicative, pure)
 import Control.Exception (IOException, catch, throwIO)
-import Control.Monad ((>>=), Monad, ap, liftM, return)
-import Control.Monad.Catch (Handler(Handler))
+import Control.Monad (return)
 import Data.Bifunctor (first)
 import Data.Bool (otherwise)
 import Data.Either (Either(Left, Right))
 import Data.Eq ((==))
-import Data.Foldable (traverse_)
 import Data.Function (($), (.))
-import Data.Functor ((<$>), Functor, fmap)
+import Data.Functor ((<$>))
 import Data.Int (Int)
 import Data.List (maximum, minimum, zip)
 import Data.Semigroup ((<>))
-import Data.String (String)
 import Data.Text (Text)
 import Data.Traversable (traverse)
-import Data.Tuple (fst)
 import GHC.Float (Double)
 import Prelude ((-), (/))
 import System.IO (
     FilePath
   , IO
   , IOMode(ReadMode, WriteMode)
-  , print
-  , putStrLn
   , stderr
   , withFile
   )
@@ -151,7 +144,7 @@ parseDouble :: Text -> Either ParseError Double
 parseDouble t =
   case T.rational t of
     Right (a, "") -> Right a
-    Right (a, t') -> Left $ InputRemaining t'
+    Right (_, t') -> Left $ InputRemaining t'
     Left _        -> Left $ InvalidNumber t
 
 data ParseError
@@ -180,19 +173,3 @@ data LineError
 renderLineError :: LineError -> Text
 renderLineError (InvalidLine n e) =
   "Error on line " <> renderLineNumber n <> ": " <> renderParseError e
-
--- Examples
-
-doIOEither :: IO (Either e a) -> (a -> IO (Either e b)) -> IO (Either e b)
-doIOEither ioEitherA f = do
-  eitherA <- ioEitherA
-  case eitherA of
-    Left e -> return (Left e)
-    Right a -> f a
-
-doEitherM :: (Monad m) => m (Either e a) -> (a -> m (Either e b)) -> m (Either e b)
-doEitherM mEitherA f = do
-  eitherA <- mEitherA
-  case eitherA of
-    Left e -> return (Left e)
-    Right a -> f a
